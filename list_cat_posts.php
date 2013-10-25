@@ -40,7 +40,7 @@ class ListCategoryPosts{
    * @param $content
    */
   static function catlist_func($atts, $content = null) {
-    $atts = shortcode_atts(array(
+    $atts = wp_parse_args($atts,array(
                              'id' => '0',
                              'name' => '',
                              'orderby' => 'date',
@@ -98,8 +98,7 @@ class ListCategoryPosts{
                              'year' => '',
                              'monthnum' => '',
                              'search' => ''
-                           ), $atts);
-
+                           ));
     $catlist_displayer = new CatListDisplayer($atts);
     return $catlist_displayer->display();
   }

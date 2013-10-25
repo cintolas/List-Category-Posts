@@ -26,20 +26,42 @@ class CatListDisplayer {
    */
   private function template(){
     $tplFileName = null;
-    $possibleTemplates = array(
-      // File locations lower in list override others
-      TEMPLATEPATH.'/list-category-posts/'.$this->params['template'].'.php',
-      STYLESHEETPATH.'/list-category-posts/'.$this->params['template'].'.php'
+    $searchPaths = array(
+        // File locations lower in list override others
+        TEMPLATEPATH.'/list-category-posts/',
+        STYLESHEETPATH.'/list-category-posts/',
     );
-
-    foreach ($possibleTemplates as $key => $file) :
+   
+    foreach ($searchPaths as $path) :
+      $file = $path . '/' .  $this->params['template'] . '.php' ; 
       if ( is_readable($file) ) :
         $tplFileName = $file;
       endif;
     endforeach;
 
     if ( !empty($tplFileName) && is_readable($tplFileName) ) :
-      require($tplFileName);
+      require 'CatListController.php';
+       $className = 'CatListController';
+      if(!empty($this->params['renderer'])){
+          $className = str_replace(' ', '', ucwords(str_replace('-', ' ', $this->params['renderer'])));
+          foreach($searchPaths as $path){
+               $file = $path . '/renderers/' .  $className . '.php' ;
+                if ( is_readable($file) ) :
+                    $rendererFile = $file;
+                endif;
+          }
+          if ( is_readable($file) ) :
+            require $rendererFile;
+          else:
+              $className = 'CatListController';
+          endif;
+      }
+      $controller = new $className($tplFileName);
+       ob_start();
+       $controller->setParams((object) $this->params);
+       $controller->render($this->catlist->get_categories_posts());
+       $this->lcp_output = ob_get_contents();
+       ob_end_clean();
     else:
       switch($this->params['template']):
       case "default":
